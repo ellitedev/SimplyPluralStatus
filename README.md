@@ -18,4 +18,4 @@ You can update the plugin by directing your terminal to (`cd src/userplugins/sim
 git pull
 ```
 
-Instructions stolen from Vencord Discord server.
+Instructions stolen from [Vencord Discord server](https://discord.com/channels/1015060230222131221/1257038407503446176).
