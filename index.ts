@@ -7,7 +7,6 @@
 import { showNotification } from "@api/Notifications";
 import { definePluginSettings } from "@api/Settings";
 import { Logger } from "@utils/Logger";
-import { sleep } from "@utils/misc";
 import definePlugin, { OptionType } from "@utils/types";
 import { findStoreLazy } from "@webpack";
 import { lodash } from "@webpack/common";
@@ -232,7 +231,7 @@ function initWs(isManual = false) {
                     } else {
                         logger.warn("WebSocket not open, skipping ping");
                     }
-                }, 60_000);
+                }, 10_000);
             }
             return;
         }
