@@ -182,6 +182,17 @@ function initWs(isManual = false) {
             color: "var(--status-danger, red)",
             noPersist: true,
         });
+
+        // Try to reconnect if not closed intentionally
+        const intentionalReasons = [
+            "Sync Disabled",
+            "Reconnecting",
+            "Plugin Stopped"
+        ];
+        if (!intentionalReasons.includes(e.reason)) {
+            logger.info("Attempting to reconnect to SimplyPlural WebSocket...");
+            setTimeout(() => initWs(), 5000); // Retry after 5 seconds
+        }
     });
 
     ws.addEventListener("message", e => {
@@ -203,6 +214,15 @@ function initWs(isManual = false) {
                 authenticated = true;
                 logger.debug("PING");
                 ws.send("ping");
+                // Start ping interval
+                setInterval(() => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        logger.debug("PING");
+                        ws.send("ping");
+                    } else {
+                        logger.warn("WebSocket not open, skipping ping");
+                    }
+                }, 10_000);
             }
             return;
         }
