@@ -4,11 +4,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { ConnectSrc, ImageSrc } from "@main/csp";
+import { ConnectSrc, CspPolicies, ImageSrc } from "@main/csp";
 
-// Add SimplyPlural API domains to CSP
-export const cspOverrides = {
-    "api.apparyllis.com": ImageSrc, // For images from SimplyPlural API
-    "wss://api.apparyllis.com": ConnectSrc // For websocket connections to SimplyPlural API
-};
+// Whitelist SimplyPlural API domains for images and websocket connections
+CspPolicies["api.apparyllis.com"] = ImageSrc; // For images
+CspPolicies["wss://api.apparyllis.com"] = ConnectSrc; // For status updates (WebSocket)
 
