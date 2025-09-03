@@ -9,8 +9,10 @@ import { definePluginSettings } from "@api/Settings";
 import { Logger } from "@utils/Logger";
 import { sleep } from "@utils/misc";
 import definePlugin, { OptionType } from "@utils/types";
+import { findStoreLazy } from "@webpack";
 import { lodash } from "@webpack/common";
 
+const UserSettingsProtoStore = findStoreLazy("UserSettingsProtoStore");
 const logger = new Logger("SimplyPlural");
 let socket: WebSocket | undefined;
 
@@ -97,6 +99,7 @@ function updateStatus() {
     } else {
         newStatusText = prefix + frontMembers.map(m => m.name).join(joinStr) + suffix;
     }
+    logger.debug("old customStatus", UserSettingsProtoStore.settings.status.customStatus);
     logger.info("setting customStatus text", newStatusText);
 
     // Update status via API
@@ -105,8 +108,9 @@ function updateStatus() {
         body: {
             custom_status: {
                 text: newStatusText,
-                emoji_name: null,
-                expires_at: null
+                emoji_name: UserSettingsProtoStore.settings.status.customStatus.emojiName,
+                emoji_id: UserSettingsProtoStore.settings.status.customStatus.emojiId,
+                expires_at: 0
             }
         }
     }).then(response => {
