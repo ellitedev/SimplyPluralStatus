@@ -89,7 +89,13 @@ function updateStatus() {
     const joinStr = settings.store.joinString || " & ";
     const prefix = settings.store.statusPrefix || "";
     const suffix = settings.store.statusSuffix || "";
-    const newStatusText = prefix + frontMembers.map(m => m.name).join(joinStr) + suffix;
+    let newStatusText: string;
+
+    if (frontMembers.length === 0) {
+        newStatusText = settings.store.emptyFrontText || "";
+    } else {
+        newStatusText = prefix + frontMembers.map(m => m.name).join(joinStr) + suffix;
+    }
     logger.info("setting customStatus text", newStatusText);
 
     // Update status via API
@@ -336,6 +342,12 @@ const settings = definePluginSettings({
         description: "Suffix for your status (e.g. ' | wahoogie'. Don't forget the space!)",
         type: OptionType.STRING,
         default: "",
+        restartNeeded: false
+    },
+    emptyFrontText: {
+        description: "Text to display when no-one is fronting (e.g. 'No one is fronting' or 'f: ?')",
+        type: OptionType.STRING,
+        default: "f: ?",
         restartNeeded: false
     }
 });
