@@ -65,6 +65,7 @@ const members: Record<string, Member> = {};
 const frontHistory: Record<string, FrontEntry> = {};
 
 let cachedAPIModule = null;
+let intervalId: any;
 
 function getAPIModule() {
     if (!cachedAPIModule) {
@@ -219,26 +220,20 @@ function initWs(isManual = false) {
             }
             if (message.msg === "Successfully authenticated") {
                 authenticated = true;
-                logger.debug("PING");
-                ws.send("ping");
                 // Start ping interval
-                setInterval(() => {
+                intervalId = setInterval(() => {
                     if (ws.readyState === WebSocket.OPEN) {
                         logger.debug("PING");
                         ws.send("ping");
                     } else {
                         logger.warn("WebSocket not open, skipping ping");
                     }
-                }, 10_000);
+                }, 60_000);
             }
             return;
         }
         if (e.data === "pong") {
             logger.debug("PONG");
-            sleep(60_000).then(e => {
-                logger.debug("PING");
-                ws.send("ping");
-            });
             return;
         }
 
@@ -397,6 +392,7 @@ export default definePlugin({
             });
         },
         "Reconnect Websocket"() {
+            clearInterval(intervalId);
             socket?.close(1000, "Reconnecting");
             initWs(true);
         }
@@ -457,6 +453,7 @@ export default definePlugin({
     },
 
     async stop() {
+        clearInterval(intervalId);
         socket?.close(1000, "Plugin Stopped");
         socket = void 0;
     }
