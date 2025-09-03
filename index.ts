@@ -148,11 +148,13 @@ function initWs(isManual = false) {
 
         logger.info("Connected to WebSocket");
 
-        (settings.store.notifyOnAutoConnect || isManual) && showNotification({
-            title: "SimplyPlural Connected",
-            body: "Connected to WebSocket",
-            noPersist: true
-        });
+        if (settings.store.notifyOnAutoConnect || isManual) {
+            maybeNotify("notifyOnAutoConnect", {
+                title: "SimplyPlural Connected",
+                body: "Connected to WebSocket",
+                noPersist: true
+            });
+        }
     });
 
     ws.addEventListener("error", e => {
@@ -162,7 +164,7 @@ function initWs(isManual = false) {
 
         logger.error("SimplyPlural Error:", e);
 
-        showNotification({
+        maybeNotify("notifyOnError", {
             title: "SimplyPlural Error",
             body: (e as ErrorEvent).message || "No Error Message",
             color: "var(--status-danger, red)",
@@ -170,13 +172,12 @@ function initWs(isManual = false) {
         });
     });
 
-
     ws.addEventListener("close", e => {
         if (!wasConnected || hasErrored) return;
 
         logger.info("SimplyPlural Disconnected:", e.code, e.reason);
 
-        showNotification({
+        maybeNotify("notifyOnDisconnect", {
             title: "SimplyPlural Disconnected",
             body: e.reason || "No Reason provided",
             color: "var(--status-danger, red)",
@@ -292,7 +293,31 @@ const settings = definePluginSettings({
     notifyOnAutoConnect: {
         description: "Show notification when auto-connecting to SimplyPlural WebSocket",
         type: OptionType.BOOLEAN,
+        default: false,
+        restartNeeded: false
+    },
+    notifyOnError: {
+        description: "Show notification on SimplyPlural WebSocket error",
+        type: OptionType.BOOLEAN,
         default: true,
+        restartNeeded: false
+    },
+    notifyOnDisconnect: {
+        description: "Show notification when SimplyPlural WebSocket disconnects",
+        type: OptionType.BOOLEAN,
+        default: false,
+        restartNeeded: false
+    },
+    notifyOnSyncToggle: {
+        description: "Show notification when toggling SimplyPlural sync",
+        type: OptionType.BOOLEAN,
+        default: false,
+        restartNeeded: false
+    },
+    notifyOnForceUpdate: {
+        description: "Show notification when forcing status update",
+        type: OptionType.BOOLEAN,
+        default: false,
         restartNeeded: false
     },
     joinString: {
@@ -319,6 +344,12 @@ const settings = definePluginSettings({
 //     statusSync: boolean;
 // }>();
 
+function maybeNotify(type: keyof typeof settings.store, options: Parameters<typeof showNotification>[0]) {
+    if (settings.store[type]) {
+        showNotification(options);
+    }
+}
+
 export default definePlugin({
     name: "SimplyPluralStatus",
     description: "Tracks current front status from SimplyPlural and updates your status text",
@@ -330,14 +361,14 @@ export default definePlugin({
         "Simply Plural Toggle"() {
             settings.store.updateStatus = !settings.store.updateStatus;
             if (settings.store.updateStatus) {
-                showNotification({
+                maybeNotify("notifyOnSyncToggle", {
                     title: "SimplyPlural Sync Enabled",
                     body: "Starting websocket",
                     noPersist: true
                 });
                 initWs(true);
             } else {
-                showNotification({
+                maybeNotify("notifyOnSyncToggle", {
                     title: "SimplyPlural Sync Disabled",
                     body: "Stopping websocket",
                     noPersist: true
@@ -347,7 +378,7 @@ export default definePlugin({
         },
         "Force Status Update"() {
             updateStatus();
-            showNotification({
+            maybeNotify("notifyOnForceUpdate", {
                 title: "SimplyPlural",
                 body: "Status update forced.",
                 noPersist: true
