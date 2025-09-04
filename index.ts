@@ -194,6 +194,8 @@ function initWs(isManual = false) {
             noPersist: true,
         });
 
+        clearInterval(intervalId);
+
         // Try to reconnect if not closed intentionally
         const intentionalReasons = [
             "Sync Disabled",
